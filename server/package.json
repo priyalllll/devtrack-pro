@@ -1,0 +1,43 @@
+{
+  "name": "devtrack-pro-server",
+  "version": "1.0.0",
+  "description": "DevTrack Pro — Backend (Node.js + Express + Prisma)",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.js",
+    "db:reset": "prisma migrate reset --force && node prisma/seed.js",
+    "db:deploy": "prisma migrate deploy",
+    "lint": "eslint . --ext .js --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext .js --fix"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.19.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0",
+    "nodemon": "^3.1.4",
+    "prisma": "^5.19.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "watch": ["src", "server.js", "prisma"],
+  "ext": "js,json,prisma",
+  "ignore": ["node_modules", "*.test.js"],
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "exec": "node server.js"
+}

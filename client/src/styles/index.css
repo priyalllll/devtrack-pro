@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ─── Tailwind Directives ───────────────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties (Design Tokens) ─────────────────────────────── */
+:root {
+  /* Sidebar width */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+
+  /* Top bar height */
+  --topbar-height: 64px;
+
+  /* Transition defaults */
+  --transition-fast:   150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow:   400ms ease;
+}
+
+/* ─── Base Layer ─────────────────────────────────────────────────────────── */
+@layer base {
+  /* Box sizing reset */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Default body */
+  body {
+    @apply bg-surface-50 text-slate-900 font-sans text-sm;
+    min-height: 100vh;
+  }
+
+  /* Dark mode body */
+  .dark body {
+    @apply bg-surface-950 text-slate-100;
+  }
+
+  /* Focus outlines — accessible but styled */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-slate-600;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+
+  /* Headings */
+  h1 { @apply text-3xl font-bold tracking-tight; }
+  h2 { @apply text-2xl font-semibold tracking-tight; }
+  h3 { @apply text-xl font-semibold; }
+  h4 { @apply text-lg font-medium; }
+  h5 { @apply text-base font-medium; }
+  h6 { @apply text-sm font-medium; }
+}
+
+/* ─── Component Layer ────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── Buttons ─────────────────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2 rounded-xl font-medium text-sm
+           transition-all duration-150 cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-primary-500 text-white
+           hover:bg-primary-600 active:scale-95
+           shadow-sm hover:shadow-md;
+  }
+  .btn-secondary {
+    @apply btn bg-slate-100 text-slate-700
+           hover:bg-slate-200 active:scale-95
+           dark:bg-surface-800 dark:text-slate-200 dark:hover:bg-surface-700;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-slate-600
+           hover:bg-slate-100 active:scale-95
+           dark:text-slate-400 dark:hover:bg-surface-800;
+  }
+  .btn-danger {
+    @apply btn bg-red-500 text-white
+           hover:bg-red-600 active:scale-95;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-lg;
+  }
+  .btn-lg {
+    @apply px-6 py-3 text-base rounded-2xl;
+  }
+
+  /* ── Cards ───────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200
+           shadow-card transition-shadow duration-200
+           dark:bg-surface-800 dark:border-surface-700;
+  }
+  .card-hover {
+    @apply card hover:shadow-card-hover hover:-translate-y-0.5
+           transition-all duration-200 cursor-pointer;
+  }
+
+  /* ── Form Controls ───────────────────────────────────────────────────── */
+  .input {
+    @apply w-full px-3 py-2 rounded-xl border border-slate-200 bg-white
+           text-sm text-slate-900 placeholder-slate-400
+           transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           disabled:opacity-50 disabled:cursor-not-allowed
+           dark:bg-surface-800 dark:border-surface-700 dark:text-slate-100
+           dark:placeholder-slate-500;
+  }
+  .input-error {
+    @apply border-red-400 focus:ring-red-400;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-700 mb-1
+           dark:text-slate-300;
+  }
+  .error-text {
+    @apply text-xs text-red-500 mt-1;
+  }
+
+  /* ── Badges ──────────────────────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5
+           rounded-full text-xs font-medium;
+  }
+  .badge-priority-none   { @apply badge bg-slate-100   text-slate-500   dark:bg-slate-700; }
+  .badge-priority-low    { @apply badge bg-green-100   text-green-700   dark:bg-green-900/40 dark:text-green-400; }
+  .badge-priority-medium { @apply badge bg-amber-100   text-amber-700   dark:bg-amber-900/40 dark:text-amber-400; }
+  .badge-priority-high   { @apply badge bg-red-100     text-red-700     dark:bg-red-900/40   dark:text-red-400; }
+  .badge-priority-urgent { @apply badge bg-red-200     text-red-800     dark:bg-red-900/60   dark:text-red-300; }
+
+  .badge-status-todo        { @apply badge bg-slate-100  text-slate-600  dark:bg-slate-700; }
+  .badge-status-in_progress { @apply badge bg-blue-100   text-blue-700   dark:bg-blue-900/40  dark:text-blue-400; }
+  .badge-status-in_review   { @apply badge bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400; }
+  .badge-status-done        { @apply badge bg-green-100  text-green-700  dark:bg-green-900/40 dark:text-green-400; }
+
+  /* ── Skeleton / Loading Shimmer ──────────────────────────────────────── */
+  .skeleton {
+    @apply rounded-lg bg-gradient-to-r
+           from-slate-200 via-slate-100 to-slate-200
+           dark:from-surface-700 dark:via-surface-600 dark:to-surface-700
+           animate-shimmer bg-[length:200%_100%];
+  }
+
+  /* ── Divider ─────────────────────────────────────────────────────────── */
+  .divider {
+    @apply border-t border-slate-200 dark:border-surface-700 my-4;
+  }
+
+  /* ── Page layout helpers ─────────────────────────────────────────────── */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+  .section-title {
+    @apply text-xl font-semibold text-slate-900 dark:text-slate-100;
+  }
+}
+
+/* ─── Utility Layer ──────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Truncate text with ellipsis */
+  .text-truncate {
+    @apply truncate overflow-hidden whitespace-nowrap;
+  }
+
+  /* Hide scrollbar but keep scrolling */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply backdrop-blur-md bg-white/80 dark:bg-surface-900/80 border border-white/20;
+  }
+}

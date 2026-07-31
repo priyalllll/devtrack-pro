@@ -1,0 +1,260 @@
+// This is your Prisma schema file.
+// Learn more: https://pris.ly/d/prisma-schema
+//
+// DevTrack Pro — Full Database Schema (v1)
+// ─────────────────────────────────────────────────────────────────────────────
+// To apply changes:
+//   npx prisma migrate dev --name <migration-name>
+//   npx prisma generate
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Neon requires directUrl for migrations on serverless
+  // directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum AppRole {
+  ADMIN
+  USER
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum Priority {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  role         AppRole  @default(USER)
+  refreshToken String?  @map("refresh_token")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt      @map("updated_at")
+
+  // Relations
+  ownedProjects  Project[]       @relation("ProjectOwner")
+  memberships    ProjectMember[]
+  assignedTasks  Task[]          @relation("TaskAssignee")
+  createdTasks   Task[]          @relation("TaskCreator")
+  comments       Comment[]
+  activityLogs   ActivityLog[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROJECT
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  color       String        @default("#6366f1")
+  status      ProjectStatus @default(ACTIVE)
+  startDate   DateTime?     @map("start_date")
+  endDate     DateTime?     @map("end_date")
+  ownerId     String        @map("owner_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt      @map("updated_at")
+
+  // Relations
+  owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members      ProjectMember[]
+  columns      Column[]
+  tasks        Task[]
+  labels       Label[]
+  activityLogs ActivityLog[]
+
+  @@map("projects")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROJECT MEMBER  (junction: user ↔ project with role)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ProjectMember {
+  id        String     @id @default(uuid())
+  projectId String     @map("project_id")
+  userId    String     @map("user_id")
+  role      MemberRole @default(MEMBER)
+  joinedAt  DateTime   @default(now()) @map("joined_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COLUMN  (Kanban columns belong to a project)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Column {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  name      String
+  position  Int
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@map("columns")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TASK
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Task {
+  id             String     @id @default(uuid())
+  projectId      String     @map("project_id")
+  columnId       String?    @map("column_id")
+  createdById    String     @map("created_by_id")
+  assigneeId     String?    @map("assignee_id")
+  title          String
+  description    String?
+  priority       Priority   @default(NONE)
+  status         TaskStatus @default(TODO)
+  position       Float      // Float for lexicographic ordering during drag-and-drop
+  dueDate        DateTime?  @map("due_date")
+  estimatedHours Decimal?   @map("estimated_hours") @db.Decimal(5, 2)
+  actualHours    Decimal?   @map("actual_hours")    @db.Decimal(5, 2)
+  isArchived     Boolean    @default(false) @map("is_archived")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt      @map("updated_at")
+
+  // Relations
+  project      Project       @relation(fields: [projectId],   references: [id], onDelete: Cascade)
+  column       Column?       @relation(fields: [columnId],    references: [id], onDelete: SetNull)
+  createdBy    User          @relation("TaskCreator",  fields: [createdById], references: [id])
+  assignee     User?         @relation("TaskAssignee", fields: [assigneeId],  references: [id])
+  labels       TaskLabel[]
+  comments     Comment[]
+  activityLogs ActivityLog[]
+
+  @@map("tasks")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LABEL  (per-project labels)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Label {
+  id        String @id @default(uuid())
+  projectId String @map("project_id")
+  name      String
+  color     String
+
+  // Relations
+  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   TaskLabel[]
+
+  @@map("labels")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TASK LABEL  (junction: task ↔ label, many-to-many)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TaskLabel {
+  taskId  String @map("task_id")
+  labelId String @map("label_id")
+
+  task  Task  @relation(fields: [taskId],  references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+  @@map("task_labels")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMENT  (threaded — a comment can have a parentId)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Comment {
+  id        String   @id @default(uuid())
+  taskId    String   @map("task_id")
+  authorId  String   @map("author_id")
+  content   String
+  parentId  String?  @map("parent_id")
+  isEdited  Boolean  @default(false) @map("is_edited")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  // Relations
+  task    Task      @relation(fields: [taskId],   references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id])
+  parent  Comment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies Comment[] @relation("CommentThread")
+
+  @@map("comments")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVITY LOG  (audit trail for all project/task events)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  taskId    String?  @map("task_id")
+  actorId   String   @map("actor_id")
+  // Action string convention: "resource.verb"
+  // e.g. "task.created", "task.moved", "member.added", "column.renamed"
+  action    String
+  meta      Json?    // { before: {...}, after: {...} } for tracking changes
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task?    @relation(fields: [taskId],    references: [id], onDelete: SetNull)
+  actor   User     @relation(fields: [actorId],   references: [id])
+
+  @@map("activity_logs")
+}
