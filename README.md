@@ -35,7 +35,7 @@ Built using modern web technologies, DevTrack Pro follows industry-standard soft
 ## Dashboard Preview
 
 <p align="center">
-  <img src="./assets/dashboard.png" alt="DevTrack Pro Dashboard" width="100%">
+  <img src="dashboard.png" alt="DevTrack Pro Dashboard" width="100%">
 </p>
 
 ---
