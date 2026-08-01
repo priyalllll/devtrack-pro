@@ -1,54 +1,59 @@
 // client/src/pages/dashboard/DashboardPage.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Placeholder dashboard — replaced in Phase 3.
+// Main dashboard page — all data comes from real DB via useDashboard().
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useAuth } from '@hooks/useAuth'
+import { useDashboard }      from '@hooks/useDashboard'
+import WelcomeCard           from '@components/dashboard/WelcomeCard'
+import StatsCards            from '@components/dashboard/StatsCards'
+import ProductivityChart     from '@components/dashboard/ProductivityChart'
+import RecentActivity        from '@components/dashboard/RecentActivity'
+import TodaysTasks           from '@components/dashboard/TodaysTasks'
+import UpcomingDeadlines     from '@components/dashboard/UpcomingDeadlines'
+import QuickActions          from '@components/dashboard/QuickActions'
 
 export default function DashboardPage() {
-  const { user, logout, isPending } = useAuth()
+  const { data, loading } = useDashboard()
+
+  const stats        = data.summary?.stats
+  const productivity = data.summary?.productivity
+  const chartData    = data.summary?.chartData
+  const activities   = data.activities?.activities
+  const todaysTasks  = data.todaysTasks?.tasks
+  const deadlines    = data.deadlines?.deadlines
 
   return (
-    <div className="min-h-screen bg-surface-950 flex items-center justify-center p-6">
-      <div className="text-center animate-fade-in max-w-md">
-        {/* Avatar */}
-        <div className="w-16 h-16 rounded-2xl bg-primary-500 flex items-center justify-center mx-auto mb-6 shadow-glow">
-          <span className="text-white text-2xl font-bold">
-            {user?.name?.[0]?.toUpperCase() ?? '?'}
-          </span>
+    <div className="space-y-6 animate-fade-in">
+
+      {/* ── Welcome banner ── */}
+      <WelcomeCard stats={stats} loading={loading.summary} />
+
+      {/* ── Stat cards ── */}
+      <StatsCards stats={stats} loading={loading.summary} />
+
+      {/* ── Row: Chart + Quick Actions ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
+          <ProductivityChart
+            chartData={chartData}
+            productivity={productivity}
+            loading={loading.summary}
+          />
         </div>
-
-        <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
-          Welcome, {user?.name}! 🎉
-        </h1>
-        <p className="text-slate-400 mb-2">You are successfully authenticated.</p>
-        <p className="text-slate-500 text-sm mb-8">{user?.email}</p>
-
-        <div className="flex items-center justify-center gap-3 flex-wrap mb-8">
-          <span className="badge bg-green-900/50 text-green-400 border border-green-700/50">
-            ✓ Auth Phase Complete
-          </span>
-          <span className="badge bg-blue-900/50 text-blue-400 border border-blue-700/50">
-            → Phase 3 Next
-          </span>
+        <div className="xl:col-span-1">
+          <QuickActions />
         </div>
-
-        <div className="p-4 rounded-xl bg-surface-800 border border-surface-700 text-left mb-6">
-          <p className="text-xs text-slate-500 font-mono mb-1">User object:</p>
-          <pre className="text-xs text-slate-300 overflow-auto">
-            {JSON.stringify(user, null, 2)}
-          </pre>
-        </div>
-
-        <button
-          id="dashboard-logout-btn"
-          onClick={logout}
-          disabled={isPending}
-          className="btn-danger"
-        >
-          {isPending ? 'Logging out…' : 'Log out'}
-        </button>
       </div>
+
+      {/* ── Row: Today's Tasks + Upcoming Deadlines ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TodaysTasks  tasks={todaysTasks} loading={loading.todaysTasks} />
+        <UpcomingDeadlines deadlines={deadlines} loading={loading.deadlines} />
+      </div>
+
+      {/* ── Recent Activity ── */}
+      <RecentActivity activities={activities} loading={loading.activities} />
+
     </div>
   )
 }

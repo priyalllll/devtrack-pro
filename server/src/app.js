@@ -21,6 +21,7 @@ import errorHandler   from './middleware/errorHandler.middleware.js'
 import authRoutes      from './routes/auth.routes.js'
 import dashboardRoutes from './routes/dashboard.routes.js'
 import projectRoutes   from './routes/project.routes.js'
+import taskRoutes      from './routes/task.routes.js'
 
 const app = express()
 
@@ -75,6 +76,9 @@ app.use(`${API_PREFIX}/dashboard`, dashboardRoutes)
 
 // Phase 4: Projects
 app.use(`${API_PREFIX}/projects`, projectRoutes)
+
+// Phase 5: Tasks
+app.use(`${API_PREFIX}/tasks`, taskRoutes)
 
 // API root info
 app.get(API_PREFIX, (req, res) => {

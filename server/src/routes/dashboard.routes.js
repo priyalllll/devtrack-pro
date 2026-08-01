@@ -22,5 +22,6 @@ router.use(authenticate)
 router.get('/summary',     dashController.getSummary)
 router.get('/activity',    dashController.getActivity)
 router.get('/tasks/today', dashController.getTodaysTasks)
+router.get('/deadlines',   dashController.getUpcomingDeadlines)
 
 export default router

@@ -1,10 +1,8 @@
 // client/src/App.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Root component — sets up:
-//   - React Router with BrowserRouter
-//   - AuthInitializer (silent session restore on boot)
-//   - Route guards (ProtectedRoute / GuestRoute)
-//   - Toaster for notifications
+// Root component — Phase 3 update:
+//   - AppLayout wraps all protected routes (provides Sidebar + TopBar)
+//   - Placeholder routes for Phase 4+ pages redirect to dashboard for now
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
@@ -13,9 +11,12 @@ import { Toaster } from 'react-hot-toast'
 import AuthInitializer  from '@/router/AuthInitializer'
 import ProtectedRoute   from '@/router/ProtectedRoute'
 import GuestRoute       from '@/router/GuestRoute'
+import AppLayout        from '@components/layout/AppLayout'
 import LoginPage        from '@pages/auth/LoginPage'
 import RegisterPage     from '@pages/auth/RegisterPage'
 import DashboardPage    from '@pages/dashboard/DashboardPage'
+import ProjectsPage     from '@pages/projects/ProjectsPage'
+import TasksPage        from '@pages/tasks/TasksPage'
 
 export default function App() {
   return (
@@ -27,37 +28,40 @@ export default function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#1e293b',
-              color:      '#f1f5f9',
-              border:     '1px solid #334155',
+              background:   '#1e293b',
+              color:        '#f1f5f9',
+              border:       '1px solid #334155',
               borderRadius: '0.75rem',
-              fontSize:   '0.875rem',
+              fontSize:     '0.875rem',
             },
-            success: {
-              iconTheme: { primary: '#6366f1', secondary: '#fff' },
-            },
-            error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' },
-            },
+            success: { iconTheme: { primary: '#6366f1', secondary: '#fff' } },
+            error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
           }}
         />
 
         <Routes>
-          {/* ── Guest-only routes (redirect to /dashboard if logged in) ── */}
+          {/* ── Guest-only (redirect to /dashboard if already logged in) ── */}
           <Route element={<GuestRoute />}>
             <Route path="/login"    element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
 
-          {/* ── Protected routes (redirect to /login if not logged in) ── */}
+          {/* ── Protected routes — all wrapped inside AppLayout ── */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            {/* Phase 3+ routes will be added here */}
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/projects"  element={<ProjectsPage />} />
+              <Route path="/tasks"     element={<TasksPage />} />
+              <Route path="/kanban"    element={<Navigate to="/dashboard" replace />} />
+              <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/profile"   element={<Navigate to="/dashboard" replace />} />
+              <Route path="/settings"  element={<Navigate to="/dashboard" replace />} />
+            </Route>
           </Route>
 
           {/* ── Default redirect ── */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/"  element={<Navigate to="/dashboard" replace />} />
+          <Route path="*"  element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthInitializer>
     </BrowserRouter>
