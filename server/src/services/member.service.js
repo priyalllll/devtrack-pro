@@ -7,6 +7,7 @@
 import prisma from '../lib/prisma.js'
 import { AppError } from '../middleware/errorHandler.middleware.js'
 import { HTTP } from '../config/constants.js'
+import { createNotification } from './notification.service.js'
 
 // Helper: Assert user is Owner or Admin of the project
 async function assertMemberAdminAccess(projectId, userId, ownerOnly = false) {
@@ -127,8 +128,9 @@ export async function addProjectMember(projectId, currentUserId, { email, role =
     },
   })
 
-  // Create ActivityLog
+  // Create ActivityLog & Notification
   try {
+    const projectInfo = await prisma.project.findUnique({ where: { id: projectId }, select: { name: true } })
     await prisma.activityLog.create({
       data: {
         projectId,
@@ -137,8 +139,15 @@ export async function addProjectMember(projectId, currentUserId, { email, role =
         meta: { addedUserId: targetUser.id, addedUserEmail: targetUser.email, role: newMember.role },
       },
     })
+    await createNotification({
+      userId: targetUser.id,
+      type: 'PROJECT_INVITED',
+      title: 'Project Invitation',
+      message: `You were added to project "${projectInfo?.name ?? 'a project'}" as ${newMember.role}.`,
+      link: '/projects',
+    })
   } catch (err) {
-    console.error('Failed to log member.added activity:', err)
+    console.error('Failed to log member.added activity/notification:', err)
   }
 
   return {

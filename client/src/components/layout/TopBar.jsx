@@ -1,13 +1,15 @@
 // client/src/components/layout/TopBar.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Fixed top navigation bar with live Notifications dropdown & user profile menu.
+// Fixed top navigation bar with Notification System dropdown & user profile menu.
+// Handles real-time notifications: TASK_ASSIGNED, TASK_COMPLETED,
+// DEADLINE_APPROACHING, PROJECT_INVITED, PROJECT_UPDATED.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import { useAuth }      from '@hooks/useAuth'
-import { getActivity }  from '@services/dashboard.service'
+import * as notifService from '@services/notification.service'
 import { formatDistanceToNow } from 'date-fns'
 import clsx from 'clsx'
 
@@ -21,6 +23,14 @@ const PAGE_TITLES = {
   '/settings':  'Settings',
 }
 
+const NOTIF_ICONS = {
+  TASK_ASSIGNED:        { icon: '📋', bg: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
+  TASK_COMPLETED:       { icon: '✅', bg: 'bg-green-500/15 text-green-400 border-green-500/30' },
+  DEADLINE_APPROACHING: { icon: '⏰', bg: 'bg-red-500/15 text-red-400 border-red-500/30' },
+  PROJECT_INVITED:      { icon: '👥', bg: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+  PROJECT_UPDATED:      { icon: '📂', bg: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+}
+
 function getInitials(name = '') {
   return name
     .split(' ')
@@ -32,25 +42,40 @@ function getInitials(name = '') {
 
 export default function TopBar({ onToggleSidebar }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user }  = useAuthStore()
   const { logout, isPending } = useAuth()
 
   const [notifOpen, setNotifOpen] = useState(false)
-  const [activities, setActivities] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount]     = useState(0)
   const [loadingNotifs, setLoadingNotifs] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(3)
   const notifRef = useRef(null)
 
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'DevTrack Pro'
 
-  // Fetch activities for notifications
-  useEffect(() => {
+  // Fetch real notifications from API
+  const fetchNotifications = useCallback(async () => {
     setLoadingNotifs(true)
-    getActivity()
-      .then((res) => setActivities(res.data.data.activities ?? []))
-      .catch(() => {})
-      .finally(() => setLoadingNotifs(false))
+    try {
+      const res = await notifService.getNotifications()
+      const list = res.data.data.notifications ?? []
+      const count = res.data.data.unreadCount ?? 0
+      setNotifications(list)
+      setUnreadCount(count)
+    } catch (err) {
+      console.error('Failed to load notifications:', err)
+    } finally {
+      setLoadingNotifs(false)
+    }
   }, [])
+
+  useEffect(() => {
+    fetchNotifications()
+    // Poll every 30 seconds for new notifications
+    const interval = setInterval(fetchNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -63,9 +88,42 @@ export default function TopBar({ onToggleSidebar }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Toggle notification panel
   const handleToggleNotif = () => {
     setNotifOpen((prev) => !prev)
-    if (!notifOpen) setUnreadCount(0)
+    if (!notifOpen) {
+      fetchNotifications()
+    }
+  }
+
+  // Mark single as read & navigate
+  const handleNotifClick = async (notif) => {
+    if (!notif.isRead) {
+      try {
+        await notifService.markAsRead(notif.id)
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
+        )
+        setUnreadCount((c) => Math.max(0, c - 1))
+      } catch (err) {
+        console.error('Failed to mark notification read:', err)
+      }
+    }
+    if (notif.link) {
+      setNotifOpen(false)
+      navigate(notif.link)
+    }
+  }
+
+  // Mark all as read
+  const handleMarkAllRead = async () => {
+    try {
+      await notifService.markAllAsRead()
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+      setUnreadCount(0)
+    } catch (err) {
+      console.error('Failed to mark all notifications read:', err)
+    }
   }
 
   return (
@@ -107,7 +165,7 @@ export default function TopBar({ onToggleSidebar }) {
         <span className="ml-auto text-xs text-slate-700 hidden md:block">⌘K</span>
       </div>
 
-      {/* ── Notification bell with dropdown ── */}
+      {/* ── Notification Bell with Unread Badge & Dropdown ── */}
       <div className="relative" ref={notifRef}>
         <button
           id="topbar-notif-btn"
@@ -120,44 +178,78 @@ export default function TopBar({ onToggleSidebar }) {
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
+
+          {/* Unread count badge */}
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-500 rounded-full ring-2 ring-surface-900" />
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface-900 animate-pulse">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
           )}
         </button>
 
         {/* Notifications Dropdown Panel */}
         {notifOpen && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl z-50 overflow-hidden animate-scale-in">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-700">
-              <h3 className="text-xs font-semibold text-white flex items-center gap-2">
-                Notifications & Activity
-              </h3>
-              <span className="text-[10px] text-primary-400 font-medium cursor-pointer hover:underline" onClick={() => setUnreadCount(0)}>
-                Mark all read
-              </span>
+          <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl z-50 overflow-hidden animate-scale-in">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-700 bg-surface-900/40">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-semibold text-white">Notifications</h3>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary-500/20 text-primary-400">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
+
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="text-[10px] text-primary-400 hover:text-primary-300 font-medium transition-colors"
+                >
+                  Mark all as read
+                </button>
+              )}
             </div>
 
-            <div className="max-h-72 overflow-y-auto divide-y divide-surface-700/50">
+            {/* Notification List */}
+            <div className="max-h-80 overflow-y-auto divide-y divide-surface-700/50">
               {loadingNotifs ? (
-                <p className="text-xs text-slate-500 p-4 text-center">Loading activity…</p>
-              ) : activities.length === 0 ? (
-                <p className="text-xs text-slate-500 p-4 text-center">No recent activity.</p>
+                <p className="text-xs text-slate-500 p-4 text-center">Loading notifications…</p>
+              ) : notifications.length === 0 ? (
+                <div className="p-6 text-center">
+                  <span className="text-2xl mb-1 block">🔔</span>
+                  <p className="text-xs font-medium text-slate-400">All caught up!</p>
+                  <p className="text-[11px] text-slate-600 mt-0.5">No notifications at the moment.</p>
+                </div>
               ) : (
-                activities.slice(0, 5).map((act) => {
+                notifications.map((notif) => {
+                  const cfg = NOTIF_ICONS[notif.type] ?? NOTIF_ICONS.PROJECT_UPDATED
                   let timeAgo = ''
-                  try { timeAgo = formatDistanceToNow(new Date(act.createdAt), { addSuffix: true }) } catch { timeAgo = '' }
+                  try { timeAgo = formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true }) } catch { timeAgo = '' }
 
                   return (
-                    <div key={act.id} className="p-3 hover:bg-surface-700/40 transition-colors flex items-start gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0">
-                        {act.actorName?.[0]?.toUpperCase() ?? '•'}
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotifClick(notif)}
+                      className={clsx(
+                        'p-3.5 flex items-start gap-3 cursor-pointer transition-colors duration-150',
+                        notif.isRead ? 'opacity-70 hover:bg-surface-700/30' : 'bg-surface-700/40 hover:bg-surface-700/60',
+                      )}
+                    >
+                      {/* Icon */}
+                      <div className="w-8 h-8 rounded-xl bg-surface-700 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">
+                        {cfg.icon}
                       </div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0 text-xs">
-                        <p className="text-slate-200 leading-snug truncate">{act.description}</p>
-                        <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1">
-                          <span className="truncate">{act.project}</span>
-                          <span>{timeAgo}</span>
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className="font-semibold text-slate-200 truncate">{notif.title}</span>
+                          {!notif.isRead && (
+                            <span className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" />
+                          )}
                         </div>
+                        <p className="text-slate-400 leading-snug break-words">{notif.message}</p>
+                        <p className="text-[10px] text-slate-500 mt-1">{timeAgo}</p>
                       </div>
                     </div>
                   )
@@ -166,9 +258,9 @@ export default function TopBar({ onToggleSidebar }) {
             </div>
 
             <div className="p-2 border-t border-surface-700 text-center bg-surface-900/40">
-              <a href="/dashboard" className="text-xs text-primary-400 hover:text-primary-300 font-medium">
-                View all in Dashboard →
-              </a>
+              <span className="text-[11px] text-slate-500">
+                DevTrack Pro Live Notification System
+              </span>
             </div>
           </div>
         )}

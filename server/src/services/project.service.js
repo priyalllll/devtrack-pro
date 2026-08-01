@@ -12,6 +12,7 @@
 import prisma  from '../lib/prisma.js'
 import { AppError } from '../middleware/errorHandler.middleware.js'
 import { HTTP, DEFAULT_COLUMNS } from '../config/constants.js'
+import { createNotification } from './notification.service.js'
 
 // ── Shared: access filter ─────────────────────────────────────────────────────
 // Returns a Prisma WHERE clause that limits results to projects the user
@@ -176,7 +177,7 @@ export async function updateProject(projectId, userId, data) {
 
   const { owner, ownerId, ...cleanData } = data
 
-  return prisma.project.update({
+  const updated = await prisma.project.update({
     where: { id: projectId },
     data: {
       ...(cleanData.name        !== undefined && { name:        cleanData.name }),
@@ -193,8 +194,25 @@ export async function updateProject(projectId, userId, data) {
     include: {
       _count: { select: { tasks: true, members: true } },
       owner:  { select: { id: true, name: true, avatarUrl: true } },
+      members: { select: { userId: true } },
     },
   })
+
+  // Trigger PROJECT_UPDATED notification for members
+  try {
+    const memberUserIds = updated.members.map(m => m.userId).filter(id => id !== userId)
+    for (const memberId of memberUserIds) {
+      createNotification({
+        userId: memberId,
+        type: 'PROJECT_UPDATED',
+        title: 'Project Updated',
+        message: `Project "${updated.name}" details were updated.`,
+        link: '/projects',
+      }).catch(() => {})
+    }
+  } catch (err) {}
+
+  return updated
 }
 
 // ── Delete ────────────────────────────────────────────────────────────────────

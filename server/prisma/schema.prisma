@@ -4,7 +4,7 @@
 // DevTrack Pro — Full Database Schema (v1)
 // ─────────────────────────────────────────────────────────────────────────────
 // To apply changes:
-//   npx prisma migrate dev --name <migration-name>
+//   npx prisma db push
 //   npx prisma generate
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -15,8 +15,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  // Neon requires directUrl for migrations on serverless
-  // directUrl = env("DIRECT_URL")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -56,6 +54,14 @@ enum TaskStatus {
   DONE
 }
 
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  DEADLINE_APPROACHING
+  PROJECT_INVITED
+  PROJECT_UPDATED
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────────────────────────────────────────
@@ -78,6 +84,7 @@ model User {
   createdTasks   Task[]          @relation("TaskCreator")
   comments       Comment[]
   activityLogs   ActivityLog[]
+  notifications  Notification[]
 
   @@map("users")
 }
@@ -245,8 +252,6 @@ model ActivityLog {
   projectId String   @map("project_id")
   taskId    String?  @map("task_id")
   actorId   String   @map("actor_id")
-  // Action string convention: "resource.verb"
-  // e.g. "task.created", "task.moved", "member.added", "column.renamed"
   action    String
   meta      Json?    // { before: {...}, after: {...} } for tracking changes
   createdAt DateTime @default(now()) @map("created_at")
@@ -257,4 +262,25 @@ model ActivityLog {
   actor   User     @relation(fields: [actorId],   references: [id])
 
   @@map("activity_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  link      String?
+  meta      Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }

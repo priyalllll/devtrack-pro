@@ -12,6 +12,7 @@
 import prisma    from '../lib/prisma.js'
 import { AppError } from '../middleware/errorHandler.middleware.js'
 import { HTTP } from '../config/constants.js'
+import { createNotification } from './notification.service.js'
 
 // ── Shared include for task queries ───────────────────────────────────────────
 const TASK_INCLUDE = {
@@ -118,7 +119,7 @@ export async function createTask(userId, data) {
   })
   const nextPosition = (maxPositionRow._max.position ?? 0) + 1000
 
-  return prisma.task.create({
+  const created = await prisma.task.create({
     data: {
       title:       data.title,
       description: data.description ?? null,
@@ -133,6 +134,19 @@ export async function createTask(userId, data) {
     },
     include: TASK_INCLUDE,
   })
+
+  // Trigger Notification if assigned to someone else
+  if (created.assigneeId && created.assigneeId !== userId) {
+    createNotification({
+      userId: created.assigneeId,
+      type: 'TASK_ASSIGNED',
+      title: 'Task Assigned',
+      message: `You were assigned to task "${created.title}".`,
+      link: '/tasks',
+    }).catch(() => {})
+  }
+
+  return created
 }
 
 // ── List ──────────────────────────────────────────────────────────────────────
@@ -226,6 +240,27 @@ export async function updateTask(taskId, userId, data) {
     },
     include: TASK_INCLUDE,
   })
+
+  // Trigger Notifications for status change / assignment
+  if (data.assigneeId && data.assigneeId !== userId) {
+    createNotification({
+      userId: data.assigneeId,
+      type: 'TASK_ASSIGNED',
+      title: 'Task Assigned',
+      message: `You were assigned to task "${updated.title}".`,
+      link: '/tasks',
+    }).catch(() => {})
+  }
+
+  if (data.status === 'DONE' && updated.createdById !== userId) {
+    createNotification({
+      userId: updated.createdById,
+      type: 'TASK_COMPLETED',
+      title: 'Task Completed',
+      message: `Task "${updated.title}" was marked as completed.`,
+      link: '/kanban',
+    }).catch(() => {})
+  }
 
   return updated
 }

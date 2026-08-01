@@ -24,6 +24,7 @@ import projectRoutes   from './routes/project.routes.js'
 import taskRoutes      from './routes/task.routes.js'
 import analyticsRoutes from './routes/analytics.routes.js'
 import userRoutes      from './routes/user.routes.js'
+import notificationRoutes from './routes/notification.routes.js'
 
 const app = express()
 
@@ -87,6 +88,9 @@ app.use(`${API_PREFIX}/analytics`, analyticsRoutes)
 
 // Team Collaboration: Users
 app.use(`${API_PREFIX}/users`, userRoutes)
+
+// Notification System
+app.use(`${API_PREFIX}/notifications`, notificationRoutes)
 
 // API root info
 app.get(API_PREFIX, (req, res) => {
