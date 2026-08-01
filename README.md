@@ -1,138 +1,311 @@
 # DevTrack Pro
 
-> Enterprise Project & Task Management Platform
+**Enterprise Project & Task Management Platform**
 
-A production-quality SaaS application for individuals and teams to manage projects, tasks, deadlines, and collaboration.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + Vite + Tailwind CSS |
-| Backend | Node.js 20 + Express 5 |
-| Database | PostgreSQL (Neon) via Prisma ORM |
-| Auth | JWT (Access 15m + Refresh 7d) |
-| Deployment | Vercel (FE) · Render (BE) · Neon (DB) |
+DevTrack Pro is a modern full-stack project management application designed to help individuals and teams efficiently manage projects, tasks, deadlines, and collaboration within a centralized workspace. The application provides an intuitive interface for project planning, task tracking, team management, analytics, and productivity monitoring.
 
 ---
 
-## Project Structure
+## Overview
+
+DevTrack Pro streamlines project execution by combining project management, task organization, analytics, and team collaboration into a single platform. It offers a clean, responsive interface backed by a secure authentication system and scalable backend architecture.
+
+The application is built using modern web technologies with a focus on performance, maintainability, and user experience.
+
+---
+
+## Features
+
+### Authentication & Security
+
+- Secure user registration and login
+- JWT-based authentication
+- Protected API routes
+- Password hashing using bcrypt
+- Refresh token support
+- Input validation with Zod
+
+### Dashboard
+
+- Personalized welcome dashboard
+- Project overview
+- Productivity statistics
+- Recent activity
+- Upcoming deadlines
+- Quick actions
+- Performance insights
+
+### Project Management
+
+- Create, edit, and delete projects
+- Project status tracking
+- Project categorization
+- Search and filtering
+- Team member management
+- Project analytics
+
+### Task Management
+
+- Create and assign tasks
+- Priority management
+- Due date tracking
+- Status management
+- Task filtering
+- Search functionality
+- Pagination support
+
+### Kanban Board
+
+- Drag-and-drop workflow
+- Status-based task organization
+- Real-time task movement
+- Visual project tracking
+
+### Analytics
+
+- Productivity charts
+- Task completion statistics
+- Performance metrics
+- Project progress visualization
+- Activity insights
+
+### Notifications
+
+- User notifications
+- Task reminders
+- Activity updates
+
+### User Experience
+
+- Responsive design
+- Modern dark theme
+- Clean UI
+- Mobile-friendly layout
+- Fast page loading
+- Intuitive navigation
+
+---
+
+# Tech Stack
+
+## Frontend
+
+- React 18
+- Vite
+- Tailwind CSS
+- React Router
+- Axios
+- Context API
+
+## Backend
+
+- Node.js
+- Express.js
+- Prisma ORM
+- JWT Authentication
+- Zod Validation
+- bcrypt
+- Morgan
+
+## Database
+
+- PostgreSQL
+- Neon Database
+
+## Development Tools
+
+- Git
+- GitHub
+- VS Code
+- Postman
+- Prisma Studio
+
+---
+
+# Project Structure
 
 ```
 devtrack-pro/
-├── client/     ← React + Vite frontend
-└── server/     ← Node.js + Express backend
+│
+├── client/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+├── server/
+│   ├── prisma/
+│   ├── src/
+│   ├── server.js
+│   └── package.json
+│
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-## Getting Started
+# Key Functionalities
 
-### Prerequisites
-
-- Node.js >= 20.x
-- npm >= 10.x
-- A [Neon](https://neon.tech) PostgreSQL database
+- User Authentication
+- Dashboard
+- Project Management
+- Task Management
+- Kanban Board
+- Team Collaboration
+- Analytics Dashboard
+- Notifications
+- Search & Filters
+- Responsive UI
 
 ---
 
-### 1. Clone the Repository
+# Installation
+
+## Clone Repository
 
 ```bash
-git clone https://github.com/your-username/devtrack-pro.git
+git clone https://github.com/priyalllll/devtrack-pro.git
+```
+
+---
+
+## Navigate to Project
+
+```bash
 cd devtrack-pro
 ```
 
 ---
 
-### 2. Setup the Server
-
-```bash
-cd server
-cp .env.example .env
-# Fill in your DATABASE_URL and JWT secrets in .env
-npm install
-npx prisma migrate dev --name init
-npx prisma generate
-npm run dev
-```
-
-Server runs at: `http://localhost:5000`
-
----
-
-### 3. Setup the Client
+## Install Frontend
 
 ```bash
 cd client
-cp .env.example .env
-# Fill in VITE_API_URL in .env
 npm install
+```
+
+---
+
+## Install Backend
+
+```bash
+cd ../server
+npm install
+```
+
+---
+
+## Configure Environment Variables
+
+Create a `.env` file inside the `server` directory.
+
+Example:
+
+```env
+DATABASE_URL=your_database_url
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+PORT=5000
+CLIENT_URL=http://localhost:5173
+```
+
+---
+
+## Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+---
+
+## Run Database Migration
+
+```bash
+npx prisma migrate deploy
+```
+
+---
+
+## Start Backend
+
+```bash
 npm run dev
 ```
 
-Client runs at: `http://localhost:5173`
+---
+
+## Start Frontend
+
+```bash
+cd ../client
+npm run dev
+```
 
 ---
 
-## Environment Variables
+# Screenshots
 
-### Server (`server/.env`)
+Add screenshots of the following pages:
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | Neon PostgreSQL connection string |
-| `JWT_ACCESS_SECRET` | Secret for signing access tokens |
-| `JWT_REFRESH_SECRET` | Secret for signing refresh tokens |
-| `JWT_ACCESS_EXPIRES_IN` | Access token expiry (e.g. `15m`) |
-| `JWT_REFRESH_EXPIRES_IN` | Refresh token expiry (e.g. `7d`) |
-| `PORT` | Server port (default: `5000`) |
-| `NODE_ENV` | `development` or `production` |
-| `CLIENT_URL` | Frontend origin for CORS (e.g. `http://localhost:5173`) |
-
-### Client (`client/.env`)
-
-| Variable | Description |
-|---|---|
-| `VITE_API_URL` | Backend API base URL (e.g. `http://localhost:5000/api/v1`) |
+- Login
+- Register
+- Dashboard
+- Projects
+- Tasks
+- Kanban Board
+- Analytics
+- Profile
 
 ---
 
-## Available Scripts
+# Future Enhancements
 
-### Server
-
-| Script | Description |
-|---|---|
-| `npm run dev` | Start server with nodemon (hot reload) |
-| `npm start` | Start server in production mode |
-| `npm run db:migrate` | Run Prisma migrations |
-| `npm run db:generate` | Generate Prisma client |
-| `npm run db:studio` | Open Prisma Studio |
-| `npm run db:seed` | Seed development data |
-| `npm run db:reset` | Reset DB and re-seed |
-
-### Client
-
-| Script | Description |
-|---|---|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint |
+- Real-time collaboration using WebSockets
+- Calendar integration
+- Email notifications
+- File attachments
+- Role-based access control
+- Dark/Light theme toggle
+- Activity timeline
+- AI-powered productivity insights
+- Mobile application
+- Third-party integrations
 
 ---
 
-## Deployment
+# Learning Outcomes
 
-- **Frontend** → Push `client/` to Vercel. Set `VITE_API_URL` in Vercel environment variables.
-- **Backend** → Push `server/` to Render. Set all server env vars in Render dashboard.
-- **Database** → Provision a PostgreSQL database on [Neon](https://neon.tech). Copy the connection string to `DATABASE_URL`.
+This project strengthened my understanding of:
+
+- Full Stack Web Development
+- REST API Design
+- Authentication & Authorization
+- Database Design
+- Prisma ORM
+- PostgreSQL
+- State Management
+- Responsive UI Development
+- Secure Backend Development
+- Git & GitHub Workflow
 
 ---
 
-## License
+# Author
 
-MIT
+**Priyal Rathore**
+
+Computer Engineering Student  
+SVKM's NMIMS Indore
+
+GitHub: https://github.com/priyalllll
+
+LinkedIn: *(Add your LinkedIn profile here)*
+
+Portfolio: *(Add after deployment)*
+
+---
+
+# License
+
+This project is developed for educational and portfolio purposes.
