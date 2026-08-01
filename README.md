@@ -30,6 +30,16 @@ The application provides a secure and scalable environment where users can manag
 Built using modern web technologies, DevTrack Pro follows industry-standard software architecture with a focus on clean design, scalability, maintainability, and security.
 
 ---
+---
+
+## Dashboard Preview
+
+<p align="center">
+  <img src="./assets/dashboard.png" alt="DevTrack Pro Dashboard" width="100%">
+</p>
+
+---
+
 
 # Key Features
 
