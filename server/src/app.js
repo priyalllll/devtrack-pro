@@ -18,7 +18,8 @@ import env        from './config/env.js'
 import { API_PREFIX } from './config/constants.js'
 import { apiLimiter, authLimiter } from './middleware/rateLimit.middleware.js'
 import errorHandler   from './middleware/errorHandler.middleware.js'
-import authRoutes     from './routes/auth.routes.js'
+import authRoutes      from './routes/auth.routes.js'
+import dashboardRoutes from './routes/dashboard.routes.js'
 
 const app = express()
 
@@ -67,6 +68,9 @@ app.get('/health', (req, res) => {
 // ── API Routes ────────────────────────────────────────────────────────────────
 // Phase 2: Authentication
 app.use(`${API_PREFIX}/auth`, authLimiter, authRoutes)
+
+// Phase 3: Dashboard
+app.use(`${API_PREFIX}/dashboard`, dashboardRoutes)
 
 // API root info
 app.get(API_PREFIX, (req, res) => {

@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import bcrypt from 'bcryptjs'
-import prisma  from '../lib/prisma.js'
+import prisma from '../lib/prisma.js'
 import { generateTokenPair, verifyRefreshToken } from '../utils/jwt.utils.js'
 import { AppError } from '../middleware/errorHandler.middleware.js'
 import { BCRYPT_ROUNDS, HTTP } from '../config/constants.js'
@@ -36,11 +36,11 @@ export async function registerUser({ name, email, password }) {
     const newUser = await tx.user.create({
       data: { name, email, passwordHash },
       select: {
-        id:        true,
-        name:      true,
-        email:     true,
+        id: true,
+        name: true,
+        email: true,
         avatarUrl: true,
-        role:      true,
+        role: true,
         createdAt: true,
       },
     })
@@ -51,7 +51,7 @@ export async function registerUser({ name, email, password }) {
     const hashedRefresh = await bcrypt.hash(tokens.refreshToken, 8)
     await tx.user.update({
       where: { id: newUser.id },
-      data:  { refreshToken: hashedRefresh },
+      data: { refreshToken: hashedRefresh },
     })
 
     return { user: newUser, tokens }
@@ -87,16 +87,16 @@ export async function loginUser({ email, password }) {
   const hashedRefresh = await bcrypt.hash(tokens.refreshToken, 8)
   await prisma.user.update({
     where: { id: user.id },
-    data:  { refreshToken: hashedRefresh },
+    data: { refreshToken: hashedRefresh },
   })
 
   // Return safe user object (no password hash)
   const safeUser = {
-    id:        user.id,
-    name:      user.name,
-    email:     user.email,
+    id: user.id,
+    name: user.name,
+    email: user.email,
     avatarUrl: user.avatarUrl,
-    role:      user.role,
+    role: user.role,
     createdAt: user.createdAt,
   }
 
@@ -136,7 +136,7 @@ export async function refreshTokens(incomingRefreshToken) {
 
   await prisma.user.update({
     where: { id: user.id },
-    data:  { refreshToken: hashedRefresh },
+    data: { refreshToken: hashedRefresh },
   })
 
   return tokens
@@ -150,7 +150,7 @@ export async function refreshTokens(incomingRefreshToken) {
 export async function logoutUser(userId) {
   await prisma.user.update({
     where: { id: userId },
-    data:  { refreshToken: null },
+    data: { refreshToken: null },
   })
 }
 
@@ -162,13 +162,13 @@ export async function logoutUser(userId) {
  */
 export async function getMe(userId) {
   const user = await prisma.user.findUnique({
-    where:  { id: userId },
+    where: { id: userId },
     select: {
-      id:        true,
-      name:      true,
-      email:     true,
+      id: true,
+      name: true,
+      email: true,
       avatarUrl: true,
-      role:      true,
+      role: true,
       createdAt: true,
       updatedAt: true,
     },
