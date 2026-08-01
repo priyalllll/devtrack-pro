@@ -20,6 +20,7 @@ import { apiLimiter, authLimiter } from './middleware/rateLimit.middleware.js'
 import errorHandler   from './middleware/errorHandler.middleware.js'
 import authRoutes      from './routes/auth.routes.js'
 import dashboardRoutes from './routes/dashboard.routes.js'
+import projectRoutes   from './routes/project.routes.js'
 
 const app = express()
 
@@ -71,6 +72,9 @@ app.use(`${API_PREFIX}/auth`, authLimiter, authRoutes)
 
 // Phase 3: Dashboard
 app.use(`${API_PREFIX}/dashboard`, dashboardRoutes)
+
+// Phase 4: Projects
+app.use(`${API_PREFIX}/projects`, projectRoutes)
 
 // API root info
 app.get(API_PREFIX, (req, res) => {

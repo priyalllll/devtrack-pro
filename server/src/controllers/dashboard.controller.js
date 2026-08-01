@@ -2,16 +2,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard API handlers.
 //
-// All three endpoints are protected (require authenticate middleware).
-// They return realistic sample data until the full CRUD modules (Phase 4+)
-// are ready. The data shapes are identical to what the real queries will return,
-// so the frontend components need no changes when we swap in real DB queries.
+// Phase 4 update:
+//   - getSummary() now uses real DB stats via project.service.getProjectStats()
+//   - getActivity() and getTodaysTasks() still return sample data until
+//     Phase 5 (Task CRUD + ActivityLog) is implemented.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { HTTP } from '../config/constants.js'
+import { getProjectStats } from '../services/project.service.js'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-/** Return the 3-letter abbreviation for the day N days ago */
 function dayLabel(daysAgo) {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const d = new Date()
@@ -19,12 +19,10 @@ function dayLabel(daysAgo) {
   return days[d.getDay()]
 }
 
-/** Return an ISO timestamp N minutes in the past */
 function minutesAgo(n) {
   return new Date(Date.now() - n * 60_000).toISOString()
 }
 
-/** Return today's date with the given hour as ISO string */
 function todayAt(hour) {
   const d = new Date()
   d.setHours(hour, 0, 0, 0)
@@ -34,7 +32,17 @@ function todayAt(hour) {
 // ── GET /dashboard/summary ────────────────────────────────────────────────────
 export async function getSummary(req, res, next) {
   try {
-    // 7-day chart data (most-recent day last)
+    const userId = req.user?.id || req.user?.userId
+    // Real project + task stats from DB
+    const stats = await getProjectStats(userId)
+
+    // Productivity % — ratio of done tasks to total tasks
+    const totalTasks = stats.activeTasks + stats.completedTasks
+    const productivityPercent = totalTasks > 0
+      ? Math.round((stats.completedTasks / totalTasks) * 100)
+      : 0
+
+    // 7-day chart data — sample until Task CRUD (Phase 5) provides time-series data
     const chartData = [
       { day: dayLabel(6), completed: 8,  created: 12 },
       { day: dayLabel(5), completed: 15, created: 10 },
@@ -48,15 +56,10 @@ export async function getSummary(req, res, next) {
     return res.status(HTTP.OK).json({
       success: true,
       data: {
-        stats: {
-          totalProjects:     12,
-          activeTasks:       34,
-          completedTasks:    128,
-          upcomingDeadlines: 5,
-        },
+        stats,
         productivity: {
-          percent: 73,
-          trend:   5, // +5% vs last week
+          percent: productivityPercent,
+          trend:   5,
         },
         chartData,
       },
@@ -71,76 +74,40 @@ export async function getActivity(req, res, next) {
   try {
     const activities = [
       {
-        id: '1',
-        action:      'task.completed',
+        id: '1', action: 'task.completed',
         description: 'Completed "Implement JWT refresh token"',
-        project:     'DevTrack Pro',
-        actorName:   'You',
-        actorColor:  '#6366f1',
-        createdAt:   minutesAgo(5),
+        project: 'DevTrack Pro', actorName: 'You', actorColor: '#6366f1',
+        createdAt: minutesAgo(5),
       },
       {
-        id: '2',
-        action:      'task.created',
+        id: '2', action: 'task.created',
         description: 'Created "Design dashboard layout"',
-        project:     'DevTrack Pro',
-        actorName:   'You',
-        actorColor:  '#6366f1',
-        createdAt:   minutesAgo(32),
+        project: 'DevTrack Pro', actorName: 'You', actorColor: '#6366f1',
+        createdAt: minutesAgo(32),
       },
       {
-        id: '3',
-        action:      'comment.added',
+        id: '3', action: 'comment.added',
         description: 'Commented on "Set up Prisma ORM"',
-        project:     'API Backend',
-        actorName:   'Alex Kim',
-        actorColor:  '#3b82f6',
-        createdAt:   minutesAgo(68),
+        project: 'API Backend', actorName: 'Alex Kim', actorColor: '#3b82f6',
+        createdAt: minutesAgo(68),
       },
       {
-        id: '4',
-        action:      'project.created',
+        id: '4', action: 'project.created',
         description: 'Created project "Mobile App v2"',
-        project:     'Mobile App v2',
-        actorName:   'Sarah Lee',
-        actorColor:  '#a855f7',
-        createdAt:   minutesAgo(125),
+        project: 'Mobile App v2', actorName: 'Sarah Lee', actorColor: '#a855f7',
+        createdAt: minutesAgo(125),
       },
       {
-        id: '5',
-        action:      'task.moved',
+        id: '5', action: 'task.moved',
         description: 'Moved "Write unit tests" to In Review',
-        project:     'API Backend',
-        actorName:   'Alex Kim',
-        actorColor:  '#3b82f6',
-        createdAt:   minutesAgo(185),
+        project: 'API Backend', actorName: 'Alex Kim', actorColor: '#3b82f6',
+        createdAt: minutesAgo(185),
       },
       {
-        id: '6',
-        action:      'member.added',
+        id: '6', action: 'member.added',
         description: 'Added Jordan Wu to DevTrack Pro',
-        project:     'DevTrack Pro',
-        actorName:   'You',
-        actorColor:  '#6366f1',
-        createdAt:   minutesAgo(243),
-      },
-      {
-        id: '7',
-        action:      'task.created',
-        description: 'Created "Configure CI/CD pipeline"',
-        project:     'DevOps',
-        actorName:   'Jordan Wu',
-        actorColor:  '#22c55e',
-        createdAt:   minutesAgo(362),
-      },
-      {
-        id: '8',
-        action:      'task.completed',
-        description: 'Completed "Database schema design"',
-        project:     'DevTrack Pro',
-        actorName:   'Sarah Lee',
-        actorColor:  '#a855f7',
-        createdAt:   minutesAgo(491),
+        project: 'DevTrack Pro', actorName: 'You', actorColor: '#6366f1',
+        createdAt: minutesAgo(243),
       },
     ]
 
@@ -157,54 +124,11 @@ export async function getActivity(req, res, next) {
 export async function getTodaysTasks(req, res, next) {
   try {
     const tasks = [
-      {
-        id: '1',
-        title:    'Review Phase 3 implementation plan',
-        priority: 'URGENT',
-        status:   'IN_PROGRESS',
-        project:  'DevTrack Pro',
-        dueDate:  todayAt(11),
-      },
-      {
-        id: '2',
-        title:    'Fix sidebar collapse animation',
-        priority: 'HIGH',
-        status:   'TODO',
-        project:  'DevTrack Pro',
-        dueDate:  todayAt(14),
-      },
-      {
-        id: '3',
-        title:    'Write API documentation for auth',
-        priority: 'MEDIUM',
-        status:   'TODO',
-        project:  'API Backend',
-        dueDate:  todayAt(16),
-      },
-      {
-        id: '4',
-        title:    'Team standup meeting',
-        priority: 'LOW',
-        status:   'DONE',
-        project:  'General',
-        dueDate:  todayAt(10),
-      },
-      {
-        id: '5',
-        title:    'Deploy to staging environment',
-        priority: 'HIGH',
-        status:   'IN_REVIEW',
-        project:  'DevOps',
-        dueDate:  todayAt(18),
-      },
-      {
-        id: '6',
-        title:    'Update README with setup guide',
-        priority: 'LOW',
-        status:   'TODO',
-        project:  'DevTrack Pro',
-        dueDate:  todayAt(20),
-      },
+      { id: '1', title: 'Review Phase 4 implementation plan', priority: 'URGENT', status: 'IN_PROGRESS', project: 'DevTrack Pro', dueDate: todayAt(11) },
+      { id: '2', title: 'Fix sidebar collapse animation',    priority: 'HIGH',   status: 'TODO',        project: 'DevTrack Pro', dueDate: todayAt(14) },
+      { id: '3', title: 'Write API docs for auth',           priority: 'MEDIUM', status: 'TODO',        project: 'API Backend',  dueDate: todayAt(16) },
+      { id: '4', title: 'Team standup meeting',              priority: 'LOW',    status: 'DONE',        project: 'General',      dueDate: todayAt(10) },
+      { id: '5', title: 'Deploy to staging environment',     priority: 'HIGH',   status: 'IN_REVIEW',   project: 'DevOps',       dueDate: todayAt(18) },
     ]
 
     return res.status(HTTP.OK).json({

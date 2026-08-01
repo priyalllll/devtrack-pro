@@ -35,6 +35,7 @@ const authenticate = (req, res, next) => {
 
     // Attach decoded payload to request for downstream use
     req.user = {
+      id:     payload.userId,
       userId: payload.userId,
       role:   payload.role,
     }
