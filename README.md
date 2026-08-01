@@ -1,142 +1,180 @@
+<div align="center">
+
 # DevTrack Pro
 
-**Enterprise Project & Task Management Platform**
+### Enterprise Project & Task Management Platform
 
-DevTrack Pro is a modern full-stack project management application designed to help individuals and teams efficiently manage projects, tasks, deadlines, and collaboration within a centralized workspace. The application provides an intuitive interface for project planning, task tracking, team management, analytics, and productivity monitoring.
-
----
-
-## Overview
-
-DevTrack Pro streamlines project execution by combining project management, task organization, analytics, and team collaboration into a single platform. It offers a clean, responsive interface backed by a secure authentication system and scalable backend architecture.
-
-The application is built using modern web technologies with a focus on performance, maintainability, and user experience.
+A modern full-stack project management application designed to help individuals and teams efficiently organize projects, manage tasks, visualize workflows, and improve productivity through an intuitive dashboard and analytics.
 
 ---
 
-## Features
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss)
+![JWT](https://img.shields.io/badge/JWT-Authentication-black?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-success?style=for-the-badge)
 
-### Authentication & Security
+</div>
 
-- Secure user registration and login
-- JWT-based authentication
-- Protected API routes
-- Password hashing using bcrypt
-- Refresh token support
-- Input validation with Zod
+---
 
-### Dashboard
+# Overview
 
-- Personalized welcome dashboard
-- Project overview
-- Productivity statistics
-- Recent activity
-- Upcoming deadlines
-- Quick actions
-- Performance insights
+DevTrack Pro is a full-stack SaaS-inspired project management platform developed to streamline project planning, task tracking, workflow management, and productivity monitoring.
 
-### Project Management
+The application provides a secure and scalable environment where users can manage multiple projects, organize tasks using Kanban boards, monitor progress through analytics dashboards, and collaborate within a centralized workspace.
 
-- Create, edit, and delete projects
-- Project status tracking
-- Project categorization
-- Search and filtering
-- Team member management
-- Project analytics
+Built using modern web technologies, DevTrack Pro follows industry-standard software architecture with a focus on clean design, scalability, maintainability, and security.
 
-### Task Management
+---
 
-- Create and assign tasks
-- Priority management
-- Due date tracking
-- Status management
-- Task filtering
-- Search functionality
-- Pagination support
+# Key Features
 
-### Kanban Board
+## Authentication & Security
 
-- Drag-and-drop workflow
-- Status-based task organization
-- Real-time task movement
-- Visual project tracking
+- Secure User Registration & Login
+- JWT Authentication
+- Refresh Token Support
+- Password Hashing with bcrypt
+- Protected API Routes
+- Secure Input Validation using Zod
 
-### Analytics
+---
 
-- Productivity charts
-- Task completion statistics
-- Performance metrics
-- Project progress visualization
-- Activity insights
+## Dashboard
 
-### Notifications
+- Personalized Dashboard
+- Project Statistics
+- Productivity Overview
+- Recent Activity
+- Today's Tasks
+- Upcoming Deadlines
+- Interactive Charts
+- Quick Actions Panel
 
-- User notifications
-- Task reminders
-- Activity updates
+---
 
-### User Experience
+## Project Management
 
-- Responsive design
-- Modern dark theme
-- Clean UI
-- Mobile-friendly layout
-- Fast page loading
-- Intuitive navigation
+- Create Projects
+- Update Projects
+- Delete Projects
+- Project Search
+- Project Filters
+- Status Management
+- Progress Tracking
+
+---
+
+## Task Management
+
+- Create Tasks
+- Edit Tasks
+- Delete Tasks
+- Task Priorities
+- Due Dates
+- Task Status Tracking
+- Search & Filters
+- Pagination
+
+---
+
+## Kanban Workflow
+
+- Drag & Drop Task Management
+- Status Based Workflow
+- Real-Time Task Updates
+- Visual Progress Tracking
+
+---
+
+## Analytics
+
+- Project Statistics
+- Productivity Charts
+- Task Completion Insights
+- Performance Metrics
+- Progress Visualization
+
+---
+
+## User Experience
+
+- Modern SaaS Dashboard
+- Responsive Design
+- Dark Theme
+- Smooth User Interface
+- Mobile Friendly Layout
+- Optimized Navigation
 
 ---
 
 # Tech Stack
 
-## Frontend
-
-- React 18
-- Vite
-- Tailwind CSS
-- React Router
-- Axios
-- Context API
-
-## Backend
-
-- Node.js
-- Express.js
-- Prisma ORM
-- JWT Authentication
-- Zod Validation
-- bcrypt
-- Morgan
-
-## Database
-
-- PostgreSQL
-- Neon Database
-
-## Development Tools
-
-- Git
-- GitHub
-- VS Code
-- Postman
-- Prisma Studio
+| Layer | Technologies |
+|--------|--------------|
+| Frontend | React 18, Vite, Tailwind CSS, React Router, Axios |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL (Neon) |
+| ORM | Prisma ORM |
+| Authentication | JWT, bcrypt |
+| Validation | Zod |
+| Charts | Recharts |
+| Version Control | Git & GitHub |
 
 ---
 
-# Project Structure
+# System Architecture
 
 ```
-devtrack-pro/
+                     User
+                       │
+                       ▼
+              React + Vite Frontend
+                       │
+                 REST API Requests
+                       │
+                       ▼
+             Express.js Backend API
+                       │
+               Authentication Layer
+                       │
+                    Prisma ORM
+                       │
+                       ▼
+             PostgreSQL (Neon Database)
+```
+
+---
+
+# Folder Structure
+
+```
+devtrack-pro
 │
-├── client/
-│   ├── src/
-│   ├── public/
-│   └── package.json
+├── client
+│   ├── src
+│   │   ├── components
+│   │   ├── pages
+│   │   ├── hooks
+│   │   ├── services
+│   │   ├── layouts
+│   │   └── utils
+│   │
+│   └── public
 │
-├── server/
-│   ├── prisma/
-│   ├── src/
-│   ├── server.js
-│   └── package.json
+├── server
+│   ├── prisma
+│   ├── middleware
+│   ├── controllers
+│   ├── services
+│   ├── routes
+│   ├── validators
+│   ├── config
+│   └── server.js
 │
 ├── README.md
 └── .gitignore
@@ -144,17 +182,16 @@ devtrack-pro/
 
 ---
 
-# Key Functionalities
+# Core Modules
 
-- User Authentication
+- Authentication System
 - Dashboard
 - Project Management
 - Task Management
 - Kanban Board
-- Team Collaboration
-- Analytics Dashboard
+- Analytics
 - Notifications
-- Search & Filters
+- Search & Filtering
 - Responsive UI
 
 ---
@@ -167,127 +204,120 @@ devtrack-pro/
 git clone https://github.com/priyalllll/devtrack-pro.git
 ```
 
----
-
-## Navigate to Project
+## Navigate
 
 ```bash
 cd devtrack-pro
 ```
 
----
+## Backend
 
-## Install Frontend
+```bash
+cd server
+npm install
+npm run dev
+```
+
+## Frontend
 
 ```bash
 cd client
 npm install
+npm run dev
 ```
 
 ---
 
-## Install Backend
-
-```bash
-cd ../server
-npm install
-```
-
----
-
-## Configure Environment Variables
+# Environment Variables
 
 Create a `.env` file inside the `server` directory.
 
-Example:
-
 ```env
-DATABASE_URL=your_database_url
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
+DATABASE_URL=
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+JWT_ACCESS_EXPIRES_IN=
+JWT_REFRESH_EXPIRES_IN=
 PORT=5000
 CLIENT_URL=http://localhost:5173
 ```
 
 ---
 
-## Generate Prisma Client
-
-```bash
-npx prisma generate
-```
-
----
-
-## Run Database Migration
-
-```bash
-npx prisma migrate deploy
-```
-
----
-
-## Start Backend
-
-```bash
-npm run dev
-```
-
----
-
-## Start Frontend
-
-```bash
-cd ../client
-npm run dev
-```
-
----
-
 # Screenshots
 
-Add screenshots of the following pages:
+> Add screenshots here after capturing them.
 
-- Login
-- Register
+- Login Page
 - Dashboard
 - Projects
 - Tasks
 - Kanban Board
 - Analytics
-- Profile
+
+---
+
+# Skills Demonstrated
+
+- Full Stack Development
+- REST API Development
+- Authentication & Authorization
+- Database Design
+- Prisma ORM
+- PostgreSQL
+- React Development
+- Backend Architecture
+- Responsive UI Development
+- Secure API Design
+- Git Version Control
 
 ---
 
 # Future Enhancements
 
-- Real-time collaboration using WebSockets
-- Calendar integration
-- Email notifications
-- File attachments
-- Role-based access control
-- Dark/Light theme toggle
-- Activity timeline
-- AI-powered productivity insights
-- Mobile application
-- Third-party integrations
+- Team Collaboration
+- Role-Based Access Control
+- Calendar Integration
+- File Attachments
+- Email Notifications
+- Activity Timeline
+- AI Task Recommendations
+- AI Productivity Insights
+- Mobile Application
+- Cloud Deployment
 
 ---
 
 # Learning Outcomes
 
-This project strengthened my understanding of:
+Through this project, I strengthened my understanding of:
 
-- Full Stack Web Development
-- REST API Design
-- Authentication & Authorization
-- Database Design
+- Modern Full Stack Development
+- RESTful API Design
+- Database Modeling
+- Authentication using JWT
 - Prisma ORM
 - PostgreSQL
 - State Management
 - Responsive UI Development
-- Secure Backend Development
-- Git & GitHub Workflow
+- Software Architecture
+- Version Control using Git
+
+---
+
+# Project Status
+
+Current Version: **v1.0**
+
+Status:
+
+- Authentication Completed
+- Dashboard Completed
+- Project Management Completed
+- Task Management Completed
+- Kanban Board Completed
+- Analytics Completed
+- Deployment in Progress
 
 ---
 
@@ -295,17 +325,21 @@ This project strengthened my understanding of:
 
 **Priyal Rathore**
 
-Computer Engineering Student  
+B.Tech Computer Engineering  
 SVKM's NMIMS Indore
 
 GitHub: https://github.com/priyalllll
 
-LinkedIn: *(Add your LinkedIn profile here)*
+LinkedIn: *(Add your LinkedIn Profile)*
 
-Portfolio: *(Add after deployment)*
+Portfolio: *(Coming Soon)*
 
 ---
 
 # License
 
-This project is developed for educational and portfolio purposes.
+This project is licensed under the MIT License.
+
+---
+
+### If you found this project interesting, consider giving it a ⭐ on GitHub.
