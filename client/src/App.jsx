@@ -17,6 +17,7 @@ import RegisterPage     from '@pages/auth/RegisterPage'
 import DashboardPage    from '@pages/dashboard/DashboardPage'
 import ProjectsPage     from '@pages/projects/ProjectsPage'
 import TasksPage        from '@pages/tasks/TasksPage'
+import KanbanPage       from '@pages/kanban/KanbanPage'
 
 export default function App() {
   return (
@@ -52,7 +53,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/projects"  element={<ProjectsPage />} />
               <Route path="/tasks"     element={<TasksPage />} />
-              <Route path="/kanban"    element={<Navigate to="/dashboard" replace />} />
+              <Route path="/kanban"    element={<KanbanPage />} />
               <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
               <Route path="/profile"   element={<Navigate to="/dashboard" replace />} />
               <Route path="/settings"  element={<Navigate to="/dashboard" replace />} />
