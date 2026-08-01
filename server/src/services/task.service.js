@@ -119,17 +119,26 @@ export async function createTask(userId, data) {
   })
   const nextPosition = (maxPositionRow._max.position ?? 0) + 1000
 
+  const cleanAssigneeId  = data.assigneeId  && String(data.assigneeId).trim()  !== '' ? data.assigneeId  : null
+  const cleanColumnId    = data.columnId    && String(data.columnId).trim()    !== '' ? data.columnId    : null
+  const cleanDescription = data.description && String(data.description).trim() !== '' ? data.description : null
+  let cleanDueDate = null
+  if (data.dueDate && String(data.dueDate).trim() !== '') {
+    const d = new Date(data.dueDate)
+    if (!isNaN(d.getTime())) cleanDueDate = d
+  }
+
   const created = await prisma.task.create({
     data: {
       title:       data.title,
-      description: data.description ?? null,
+      description: cleanDescription,
       projectId:   data.projectId,
-      columnId:    data.columnId    ?? null,
+      columnId:    cleanColumnId,
       createdById: userId,
-      assigneeId:  data.assigneeId  ?? null,
+      assigneeId:  cleanAssigneeId,
       status:      data.status      ?? 'TODO',
       priority:    data.priority    ?? 'NONE',
-      dueDate:     data.dueDate     ? new Date(data.dueDate) : null,
+      dueDate:     cleanDueDate,
       position:    nextPosition,
     },
     include: TASK_INCLUDE,
@@ -224,20 +233,26 @@ export async function getTask(taskId, userId) {
 export async function updateTask(taskId, userId, data) {
   const task = await assertTaskWriteAccess(taskId, userId)
 
+  const updatePayload = {}
+  if (data.title       !== undefined) updatePayload.title       = data.title
+  if (data.description !== undefined) updatePayload.description = data.description && String(data.description).trim() !== '' ? data.description : null
+  if (data.columnId    !== undefined) updatePayload.columnId    = data.columnId    && String(data.columnId).trim()    !== '' ? data.columnId    : null
+  if (data.assigneeId  !== undefined) updatePayload.assigneeId  = data.assigneeId  && String(data.assigneeId).trim()  !== '' ? data.assigneeId  : null
+  if (data.status      !== undefined) updatePayload.status      = data.status
+  if (data.priority    !== undefined) updatePayload.priority    = data.priority
+  if (data.position    !== undefined) updatePayload.position    = data.position
+  if (data.dueDate     !== undefined) {
+    if (data.dueDate && String(data.dueDate).trim() !== '') {
+      const d = new Date(data.dueDate)
+      updatePayload.dueDate = !isNaN(d.getTime()) ? d : null
+    } else {
+      updatePayload.dueDate = null
+    }
+  }
+
   const updated = await prisma.task.update({
     where: { id: taskId },
-    data: {
-      ...(data.title       !== undefined && { title:       data.title }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.columnId    !== undefined && { columnId:    data.columnId }),
-      ...(data.assigneeId  !== undefined && { assigneeId:  data.assigneeId }),
-      ...(data.status      !== undefined && { status: data.status }),
-      ...(data.priority    !== undefined && { priority:    data.priority }),
-      ...(data.dueDate     !== undefined && {
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
-      }),
-      ...(data.position !== undefined && { position: data.position }),
-    },
+    data: updatePayload,
     include: TASK_INCLUDE,
   })
 

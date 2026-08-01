@@ -188,7 +188,18 @@ export default function TaskModal({ task, defaultProjectId, onClose, onSubmit, i
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        <form
+          onSubmit={handleSubmit((data) => {
+            const payload = {
+              ...data,
+              description: data.description?.trim() || undefined,
+              assigneeId:  data.assigneeId?.trim()  || undefined,
+              dueDate:     data.dueDate?.trim()     || undefined,
+            }
+            onSubmit(payload)
+          })}
+          className="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto"
+        >
 
           {/* Title */}
           <Field label="Task Title *" error={errors.title?.message}>
