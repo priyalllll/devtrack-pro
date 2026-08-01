@@ -1,11 +1,15 @@
 // client/src/components/layout/TopBar.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Fixed top navigation bar — shown inside AppLayout above the main content.
+// Fixed top navigation bar with live Notifications dropdown & user profile menu.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth }      from '@hooks/useAuth'
+import { getActivity }  from '@services/dashboard.service'
+import { formatDistanceToNow } from 'date-fns'
+import clsx from 'clsx'
 
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
@@ -31,7 +35,38 @@ export default function TopBar({ onToggleSidebar }) {
   const { user }  = useAuthStore()
   const { logout, isPending } = useAuth()
 
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [activities, setActivities] = useState([])
+  const [loadingNotifs, setLoadingNotifs] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(3)
+  const notifRef = useRef(null)
+
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'DevTrack Pro'
+
+  // Fetch activities for notifications
+  useEffect(() => {
+    setLoadingNotifs(true)
+    getActivity()
+      .then((res) => setActivities(res.data.data.activities ?? []))
+      .catch(() => {})
+      .finally(() => setLoadingNotifs(false))
+  }, [])
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleToggleNotif = () => {
+    setNotifOpen((prev) => !prev)
+    if (!notifOpen) setUnreadCount(0)
+  }
 
   return (
     <header className="sticky top-0 z-30 h-16 flex items-center gap-4 px-4 sm:px-6
@@ -72,20 +107,72 @@ export default function TopBar({ onToggleSidebar }) {
         <span className="ml-auto text-xs text-slate-700 hidden md:block">⌘K</span>
       </div>
 
-      {/* ── Notification bell ── */}
-      <button
-        id="topbar-notif-btn"
-        className="relative flex items-center justify-center w-9 h-9 rounded-xl
-                   text-slate-400 hover:bg-surface-700 hover:text-slate-200
-                   transition-all duration-150"
-        aria-label="Notifications"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
-        {/* Notification dot */}
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-500 rounded-full ring-2 ring-surface-900" />
-      </button>
+      {/* ── Notification bell with dropdown ── */}
+      <div className="relative" ref={notifRef}>
+        <button
+          id="topbar-notif-btn"
+          onClick={handleToggleNotif}
+          className="relative flex items-center justify-center w-9 h-9 rounded-xl
+                     text-slate-400 hover:bg-surface-700 hover:text-slate-200
+                     transition-all duration-150"
+          aria-label="Notifications"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          {unreadCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-500 rounded-full ring-2 ring-surface-900" />
+          )}
+        </button>
+
+        {/* Notifications Dropdown Panel */}
+        {notifOpen && (
+          <div className="absolute right-0 top-full mt-2 w-80 bg-surface-800 border border-surface-700 rounded-2xl shadow-2xl z-50 overflow-hidden animate-scale-in">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-700">
+              <h3 className="text-xs font-semibold text-white flex items-center gap-2">
+                Notifications & Activity
+              </h3>
+              <span className="text-[10px] text-primary-400 font-medium cursor-pointer hover:underline" onClick={() => setUnreadCount(0)}>
+                Mark all read
+              </span>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto divide-y divide-surface-700/50">
+              {loadingNotifs ? (
+                <p className="text-xs text-slate-500 p-4 text-center">Loading activity…</p>
+              ) : activities.length === 0 ? (
+                <p className="text-xs text-slate-500 p-4 text-center">No recent activity.</p>
+              ) : (
+                activities.slice(0, 5).map((act) => {
+                  let timeAgo = ''
+                  try { timeAgo = formatDistanceToNow(new Date(act.createdAt), { addSuffix: true }) } catch { timeAgo = '' }
+
+                  return (
+                    <div key={act.id} className="p-3 hover:bg-surface-700/40 transition-colors flex items-start gap-2.5">
+                      <div className="w-6 h-6 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0">
+                        {act.actorName?.[0]?.toUpperCase() ?? '•'}
+                      </div>
+                      <div className="flex-1 min-w-0 text-xs">
+                        <p className="text-slate-200 leading-snug truncate">{act.description}</p>
+                        <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1">
+                          <span className="truncate">{act.project}</span>
+                          <span>{timeAgo}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            <div className="p-2 border-t border-surface-700 text-center bg-surface-900/40">
+              <a href="/dashboard" className="text-xs text-primary-400 hover:text-primary-300 font-medium">
+                View all in Dashboard →
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── User avatar + dropdown ── */}
       <div className="relative group">
@@ -94,7 +181,6 @@ export default function TopBar({ onToggleSidebar }) {
           className="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-xl
                      hover:bg-surface-700 transition-all duration-150"
         >
-          {/* Avatar circle */}
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700
                           flex items-center justify-center text-white text-xs font-bold
                           shadow-glow flex-shrink-0">

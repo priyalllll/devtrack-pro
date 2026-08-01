@@ -23,6 +23,7 @@ import dashboardRoutes from './routes/dashboard.routes.js'
 import projectRoutes   from './routes/project.routes.js'
 import taskRoutes      from './routes/task.routes.js'
 import analyticsRoutes from './routes/analytics.routes.js'
+import userRoutes      from './routes/user.routes.js'
 
 const app = express()
 
@@ -83,6 +84,9 @@ app.use(`${API_PREFIX}/tasks`, taskRoutes)
 
 // Phase 6: Analytics
 app.use(`${API_PREFIX}/analytics`, analyticsRoutes)
+
+// Team Collaboration: Users
+app.use(`${API_PREFIX}/users`, userRoutes)
 
 // API root info
 app.get(API_PREFIX, (req, res) => {

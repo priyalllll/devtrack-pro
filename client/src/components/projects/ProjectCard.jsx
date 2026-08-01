@@ -8,17 +8,17 @@ const STATUS_CONFIG = {
   ARCHIVED:  { label: 'Archived',  cls: 'bg-slate-500/15 text-slate-400 border-slate-500/30' },
 }
 
-function MemberAvatars({ members = [] }) {
+function MemberAvatars({ members = [], onClick }) {
   return (
-    <div className="flex -space-x-1.5">
+    <div className="flex items-center -space-x-1.5 cursor-pointer group/avatars" onClick={onClick} title="Manage Team Members">
       {members.slice(0, 4).map(({ user }) => (
         <div
-          key={user.id}
-          title={user.name}
-          className="w-6 h-6 rounded-full border-2 border-surface-800 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+          key={user?.id || Math.random()}
+          title={user?.name ?? 'Member'}
+          className="w-6 h-6 rounded-full border-2 border-surface-800 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 group-hover/avatars:border-primary-500 transition-colors"
           style={{ background: '#6366f1' }}
         >
-          {user.name?.[0]?.toUpperCase()}
+          {user?.name?.[0]?.toUpperCase() ?? '?'}
         </div>
       ))}
       {members.length > 4 && (
@@ -31,7 +31,7 @@ function MemberAvatars({ members = [] }) {
   )
 }
 
-export default function ProjectCard({ project, onEdit, onDelete }) {
+export default function ProjectCard({ project, onEdit, onDelete, onManageMembers }) {
   const status = STATUS_CONFIG[project.status] ?? STATUS_CONFIG.ACTIVE
 
   return (
@@ -89,7 +89,7 @@ export default function ProjectCard({ project, onEdit, onDelete }) {
             </svg>
             {project._count?.tasks ?? 0} tasks
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 cursor-pointer hover:text-primary-400 transition-colors" onClick={() => onManageMembers?.(project)}>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -104,33 +104,44 @@ export default function ProjectCard({ project, onEdit, onDelete }) {
 
         {/* Footer: avatars + actions */}
         <div className="flex items-center justify-between pt-3 border-t border-surface-700/50 mt-auto">
-          <MemberAvatars members={project.members ?? []} />
+          <MemberAvatars members={project.members ?? []} onClick={() => onManageMembers?.(project)} />
 
           {/* Actions — visible on hover */}
           <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <button
+              id={`project-members-${project.id}`}
+              onClick={(e) => { e.stopPropagation(); onManageMembers?.(project) }}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
+                         bg-surface-700 text-slate-300 hover:bg-surface-600 hover:text-white
+                         transition-all duration-150"
+              title="Manage Team"
+            >
+              <svg className="w-3.5 h-3.5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Team
+            </button>
+            <button
               id={`project-edit-${project.id}`}
               onClick={(e) => { e.stopPropagation(); onEdit(project) }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
                          bg-surface-700 text-slate-300 hover:bg-surface-600 hover:text-white
                          transition-all duration-150"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Edit
             </button>
             <button
               id={`project-delete-${project.id}`}
               onClick={(e) => { e.stopPropagation(); onDelete(project) }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
                          bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300
                          transition-all duration-150"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Delete
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { useProjects }         from '@hooks/useProjects'
 import ProjectCard             from '@components/projects/ProjectCard'
 import ProjectModal            from '@components/projects/ProjectModal'
 import DeleteConfirmModal      from '@components/projects/DeleteConfirmModal'
+import MembersModal            from '@components/projects/MembersModal'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const STATUS_TABS = [
@@ -79,6 +80,7 @@ export default function ProjectsPage() {
   const [activeStatus,  setActiveStatus]  = useState('')
   const [modalProject,  setModalProject]  = useState(null)  // null = closed, object = edit, 'new' = create
   const [deleteTarget,  setDeleteTarget]  = useState(null)
+  const [membersProject, setMembersProject] = useState(null)
   const [isSubmitting,  setIsSubmitting]  = useState(false)
   const [isDeleting,    setIsDeleting]    = useState(false)
   const searchTimeout = useRef(null)
@@ -216,6 +218,7 @@ export default function ProjectsPage() {
                   project={project}
                   onEdit={(p) => setModalProject(p)}
                   onDelete={(p) => setDeleteTarget(p)}
+                  onManageMembers={(p) => setMembersProject(p)}
                 />
               ))
         }
@@ -237,6 +240,16 @@ export default function ProjectsPage() {
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
           isDeleting={isDeleting}
+        />
+      )}
+
+      {membersProject && (
+        <MembersModal
+          project={membersProject}
+          onClose={() => {
+            setMembersProject(null)
+            refetch()
+          }}
         />
       )}
     </div>
